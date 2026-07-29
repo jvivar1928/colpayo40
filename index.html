@@ -220,6 +220,25 @@
 
   <div class="panel" id="panel-resumen">
     <div class="card">
+      <div style="font-size:12.5px; color:#766B5A;">Saldo pendiente con Lucy</div>
+      <div id="saldo-lucy-total" style="font-size:28px; font-weight:600; margin-top:4px; color:#3F5230;">$0</div>
+      <div class="breakdown" style="margin-top:10px; padding-top:8px; border-top:0.5px solid rgba(63,82,48,0.18); display:flex; flex-direction:column; gap:3px;">
+        <span style="display:flex; justify-content:space-between; font-size:12px;">Generado en total <b id="saldo-generado">$0</b></span>
+        <span style="display:flex; justify-content:space-between; font-size:12px;">Ya rendido <b id="saldo-pagado">$0</b></span>
+      </div>
+      <div class="editor-only" style="margin-top:14px;">
+        <div class="grid2">
+          <div class="field"><label>Fecha del pago</label><input type="date" id="pago-fecha" /></div>
+          <div class="field"><label>Monto entregado</label><div class="amount-field"><span class="currency">$</span><input type="text" inputmode="decimal" id="pago-monto" placeholder="0" /></div></div>
+        </div>
+        <div class="row-actions">
+          <button class="primary" id="pago-add"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Registrar pago a Lucy</button>
+        </div>
+        <div class="status" id="pago-status"></div>
+      </div>
+      <div id="pagos-list" style="margin-top:6px;"></div>
+    </div>
+    <div class="card">
       <label>Mes</label>
       <select id="s-mes"></select>
       <div style="margin-top:12px; display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
@@ -268,6 +287,7 @@ const reservasCol = collection(db, 'reservas');
 const gastosCol = collection(db, 'gastos');
 const notasCol = collection(db, 'notas');
 const mesesCerradosCol = collection(db, 'mesesCerrados');
+const pagosLucyCol = collection(db, 'pagosLucy');
 
 const fmt = (n) => {
   n = Math.round(n || 0);
@@ -288,6 +308,7 @@ let reservas = [];
 let gastos = [];
 let notas = [];
 let mesesCerrados = [];
+let pagosLucy = [];
 let currentRole = null;
 let listenersAttached = false;
 const today = new Date();
@@ -413,6 +434,37 @@ function renderResumen() {
     badge.style.display = cerrado ? 'inline-block' : 'none';
     btn.style.display = 'inline-flex';
     btn.textContent = cerrado ? 'Reabrir este mes' : 'Cerrar este mes';
+  }
+
+  renderSaldoLucy();
+}
+
+function renderSaldoLucy() {
+  let generadoTotal = 0;
+  reservas.forEach(r => {
+    const c = calcReserva(r);
+    generadoTotal += (c.base - c.comision) + (r.limpieza || 0);
+  });
+  gastos.forEach(g => { generadoTotal -= g.monto || 0; });
+  let pagadoTotal = 0;
+  pagosLucy.forEach(p => { pagadoTotal += p.monto || 0; });
+  const saldoPendiente = generadoTotal - pagadoTotal;
+
+  document.getElementById('saldo-lucy-total').textContent = fmt(saldoPendiente);
+  document.getElementById('saldo-generado').textContent = fmt(generadoTotal);
+  document.getElementById('saldo-pagado').textContent = fmt(pagadoTotal);
+
+  const pagoMontoInput = document.getElementById('pago-monto');
+  if (pagoMontoInput && !pagoMontoInput.value) {
+    pagoMontoInput.placeholder = String(Math.round(saldoPendiente));
+  }
+
+  const list = document.getElementById('pagos-list');
+  if (!pagosLucy.length) {
+    list.innerHTML = '<div class="empty">Todavía no registraste ningún pago.</div>';
+  } else {
+    const sorted = [...pagosLucy].sort((a, b) => (b.fecha || '').localeCompare(a.fecha || ''));
+    list.innerHTML = sorted.map(p => '<div class="list-item nota"><div class="li-top"><div><div class="li-title">Pago a Lucy</div><div class="li-sub">' + formatFecha(p.fecha) + '</div></div><button class="del" data-id="' + p.id + '" data-kind="p" aria-label="Eliminar pago"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="7" x2="20" y2="7"/><path d="M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"/><path d="M10 7V4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3"/></svg></button></div><div class="li-nums"><span>Monto: <b class="teal">' + fmt(p.monto) + '</b></span></div></div>').join('');
   }
 }
 
@@ -603,6 +655,22 @@ document.getElementById('g-add').addEventListener('click', async () => {
   }
 });
 
+document.getElementById('pago-add').addEventListener('click', async () => {
+  if (currentRole !== 'editor') return;
+  const status = document.getElementById('pago-status');
+  const fecha = document.getElementById('pago-fecha').value;
+  const elMonto = document.getElementById('pago-monto');
+  const monto = parseFloat(elMonto.value) || 0;
+  if (!fecha || !monto) { setStatus(status, 'Falta la fecha o el monto entregado.', 'err'); return; }
+  try {
+    await addDoc(pagosLucyCol, { fecha, monto });
+    document.getElementById('pago-fecha').value = ''; elMonto.value = '';
+    setStatus(status, 'Pago registrado.', 'ok');
+  } catch (e) {
+    setStatus(status, 'No se pudo guardar. Probá de nuevo.', 'err');
+  }
+});
+
 document.getElementById('n-add').addEventListener('click', async () => {
   if (currentRole !== 'editor') return;
   const status = document.getElementById('n-status');
@@ -667,6 +735,7 @@ document.addEventListener('click', async (e) => {
   try {
     if (kind === 'r') await deleteDoc(doc(db, 'reservas', id));
     else if (kind === 'n') await deleteDoc(doc(db, 'notas', id));
+    else if (kind === 'p') await deleteDoc(doc(db, 'pagosLucy', id));
     else await deleteDoc(doc(db, 'gastos', id));
   } catch (e) { /* la regla de seguridad bloquea a quien no sea editor */ }
 });
@@ -688,6 +757,10 @@ function attachListeners() {
   });
   onSnapshot(mesesCerradosCol, snap => {
     mesesCerrados = snap.docs.map(d => d.id);
+    renderResumen();
+  });
+  onSnapshot(pagosLucyCol, snap => {
+    pagosLucy = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     renderResumen();
   });
 }
