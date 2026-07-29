@@ -26,8 +26,14 @@
   .tab svg { opacity: 0.75; }
   .tab.active { color: #3A2E22; font-weight: 600; border-bottom-color: #B5542F; }
   .tab.active svg { opacity: 1; color: #B5542F; }
-  .panel { display: none; }
+  .panel { display: none; position: relative; border-radius: 16px; padding: 14px; background-size: cover; background-position: center; background-repeat: no-repeat; min-height: 380px; }
   .panel.active { display: block; }
+  .panel::before { content: ''; position: absolute; inset: 0; background: rgba(247,241,230,0.85); border-radius: 16px; z-index: 0; }
+  .panel > * { position: relative; z-index: 1; }
+  #panel-calendario { background-image: url('images/foto-living.jpg'); }
+  #panel-reservas { background-image: url('images/foto-dormitorio.jpg'); }
+  #panel-gastos { background-image: url('images/foto-cocina.jpg'); }
+  #panel-resumen { background-image: url('images/foto-hall.jpg'); }
   .card { background: #ffffff; border: 0.5px solid #E6DCC6; border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 1rem; }
   .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
   label { display: block; font-size: 12px; color: #766B5A; margin-bottom: 4px; }
@@ -97,9 +103,6 @@
   .cal-guest { font-size: 10.5px; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
   .cal-legend { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
   .cal-chip { font-size: 11.5px; padding: 4px 10px; border-radius: 20px; font-weight: 600; }
-  .gallery { display: flex; gap: 8px; overflow-x: auto; margin-bottom: 1.25rem; padding-bottom: 2px; -webkit-overflow-scrolling: touch; }
-  .gallery a { flex-shrink: 0; }
-  .gallery img { display: block; height: 90px; width: 130px; object-fit: cover; border-radius: 10px; border: 0.5px solid #E6DCC6; }
   .role-viewer .editor-only { display: none !important; }
   .role-viewer .del { display: none !important; }
 </style>
@@ -135,13 +138,6 @@
       <div id="session-info"></div>
       <button id="logout-btn" style="height:28px; padding:0 10px; font-size:12px; margin-top:4px;">Cerrar sesión</button>
     </div>
-  </div>
-
-  <div class="gallery">
-    <a href="images/foto-living.jpg" target="_blank" rel="noopener"><img src="images/foto-living.jpg" alt="Living" loading="lazy"></a>
-    <a href="images/foto-cocina.jpg" target="_blank" rel="noopener"><img src="images/foto-cocina.jpg" alt="Cocina y comedor" loading="lazy"></a>
-    <a href="images/foto-hall.jpg" target="_blank" rel="noopener"><img src="images/foto-hall.jpg" alt="Hall de entrada" loading="lazy"></a>
-    <a href="images/foto-dormitorio.jpg" target="_blank" rel="noopener"><img src="images/foto-dormitorio.jpg" alt="Dormitorio" loading="lazy"></a>
   </div>
 
   <div class="tabs">
