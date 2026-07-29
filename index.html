@@ -253,7 +253,10 @@ const reservasCol = collection(db, 'reservas');
 const gastosCol = collection(db, 'gastos');
 const notasCol = collection(db, 'notas');
 
-const fmt = (n) => '$' + Math.round(n || 0).toLocaleString('es-AR');
+const fmt = (n) => {
+  n = Math.round(n || 0);
+  return (n < 0 ? '-$' : '$') + Math.abs(n).toLocaleString('es-AR');
+};
 const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 const MESES_ABR = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
 const WEEKDAYS = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
@@ -295,11 +298,13 @@ function setStatus(el, html, type) {
 }
 
 document.querySelectorAll('.amount-field input').forEach(inp => {
+  const allowNegative = inp.id === 'g-monto';
   inp.addEventListener('input', () => {
+    const neg = allowNegative && inp.value.trim().startsWith('-');
     let v = inp.value.replace(/[^0-9.]/g, '');
     const parts = v.split('.');
     if (parts.length > 2) v = parts[0] + '.' + parts.slice(1).join('');
-    inp.value = v;
+    inp.value = (neg ? '-' : '') + v;
     if (v) inp.classList.remove('invalid');
   });
 });
@@ -363,7 +368,7 @@ function renderResumen() {
   document.getElementById('s-gastos').textContent = fmt(gastosMes);
   document.getElementById('s-lucy').textContent = fmt(lucyMes);
   document.getElementById('s-split').textContent = 'Juanma ' + fmt(comision / 2) + ' · Lucas ' + fmt(comision / 2);
-  document.getElementById('s-lucy-gastos').textContent = '-' + fmt(gastosMes);
+  document.getElementById('s-lucy-gastos').textContent = fmt(-gastosMes);
   document.getElementById('s-lucy-estadia').textContent = fmt(estadiaMes);
   document.getElementById('s-lucy-limpieza').textContent = fmt(limpiezaMes);
 }
