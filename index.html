@@ -38,6 +38,8 @@
   .static-field { height: 36px; border-radius: 10px; border: 0.5px solid #E6DCC6; background: #F1E9D6; color: #766B5A; display: flex; align-items: center; padding: 0 10px; font-size: 14px; }
   .amount-field { position: relative; }
   .amount-field .currency { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: #766B5A; font-size: 14px; pointer-events: none; }
+  .amount-field.usd .currency { font-size: 12px; }
+  .amount-field.usd input { padding-left: 34px; }
   .amount-field input { padding-left: 20px; }
   .field { margin-bottom: 10px; }
   .row-actions { display: flex; justify-content: flex-end; margin-top: 6px; }
@@ -152,6 +154,7 @@
       <div class="tab" data-tab="reservas"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9"/></svg>Reservas</div>
       <div class="tab" data-tab="gastos"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3z"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="9" y1="12" x2="15" y2="12"/></svg>Gastos</div>
       <div class="tab" data-tab="resumen"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="20" x2="20" y2="20"/><rect x="6" y="12" width="3" height="6"/><rect x="11" y="8" width="3" height="10"/><rect x="16" y="4" width="3" height="14"/></svg>Resumen</div>
+      <div class="tab" data-tab="rendicion"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h13M13 3l4 4-4 4"/><path d="M20 17H7M11 21l-4-4 4-4"/></svg>Rendición</div>
     </div>
   </div>
 
@@ -220,25 +223,6 @@
 
   <div class="panel" id="panel-resumen">
     <div class="card">
-      <div style="font-size:12.5px; color:#766B5A;">Saldo pendiente con Lucy</div>
-      <div id="saldo-lucy-total" style="font-size:28px; font-weight:600; margin-top:4px; color:#3F5230;">$0</div>
-      <div class="breakdown" style="margin-top:10px; padding-top:8px; border-top:0.5px solid rgba(63,82,48,0.18); display:flex; flex-direction:column; gap:3px;">
-        <span style="display:flex; justify-content:space-between; font-size:12px;">Generado en total <b id="saldo-generado">$0</b></span>
-        <span style="display:flex; justify-content:space-between; font-size:12px;">Ya rendido <b id="saldo-pagado">$0</b></span>
-      </div>
-      <div class="editor-only" style="margin-top:14px;">
-        <div class="grid2">
-          <div class="field"><label>Fecha del pago</label><input type="date" id="pago-fecha" /></div>
-          <div class="field"><label>Monto entregado</label><div class="amount-field"><span class="currency">$</span><input type="text" inputmode="decimal" id="pago-monto" placeholder="0" /></div></div>
-        </div>
-        <div class="row-actions">
-          <button class="primary" id="pago-add"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Registrar pago a Lucy</button>
-        </div>
-        <div class="status" id="pago-status"></div>
-      </div>
-      <div id="pagos-list" style="margin-top:6px;"></div>
-    </div>
-    <div class="card">
       <label>Mes</label>
       <select id="s-mes"></select>
       <div style="margin-top:12px; display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
@@ -261,6 +245,49 @@
         </div>
       </div>
     </div>
+  </div>
+
+  <div class="panel" id="panel-rendicion">
+    <div class="card">
+      <div style="font-size:12.5px; color:#766B5A;">Saldo pendiente en pesos</div>
+      <div id="saldo-ars-total" style="font-size:28px; font-weight:600; margin-top:4px; color:#3F5230;">$0</div>
+      <div class="breakdown" style="margin-top:10px; padding-top:8px; border-top:0.5px solid rgba(63,82,48,0.18); display:flex; flex-direction:column; gap:3px;">
+        <span style="display:flex; justify-content:space-between; font-size:12px;">Generado en total <b id="rend-generado">$0</b></span>
+        <span style="display:flex; justify-content:space-between; font-size:12px;">Convertido a dólares <b id="rend-convertido">-$0</b></span>
+      </div>
+    </div>
+
+    <div class="card editor-only">
+      <div style="font-size:14px; font-weight:600; margin-bottom:10px;">Convertir a dólares</div>
+      <div class="grid2">
+        <div class="field"><label>Fecha</label><input type="date" id="conv-fecha" /></div>
+        <div class="field"><label>Pesos convertidos</label><div class="amount-field"><span class="currency">$</span><input type="text" inputmode="decimal" id="conv-pesos" placeholder="0" /></div></div>
+        <div class="field"><label>Dólares obtenidos</label><div class="amount-field usd"><span class="currency">US$</span><input type="text" inputmode="decimal" id="conv-dolares" placeholder="0" /></div></div>
+      </div>
+      <div class="row-actions">
+        <button class="primary" id="conv-add"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Convertir</button>
+      </div>
+      <div class="status" id="conv-status"></div>
+    </div>
+    <div class="card" id="conversiones-list"><div class="empty">Todavía no registraste ninguna conversión.</div></div>
+
+    <div class="card" style="background:#F1E9D6;">
+      <div style="font-size:12.5px; color:#766B5A;">Dólares pendientes de rendir</div>
+      <div id="saldo-usd-total" style="font-size:28px; font-weight:600; margin-top:4px; color:#3A2E22;">US$0</div>
+    </div>
+
+    <div class="card editor-only">
+      <div style="font-size:14px; font-weight:600; margin-bottom:10px;">Rendir dólares a Lucy</div>
+      <div class="grid2">
+        <div class="field"><label>Fecha</label><input type="date" id="rend-fecha" /></div>
+        <div class="field"><label>Dólares entregados</label><div class="amount-field usd"><span class="currency">US$</span><input type="text" inputmode="decimal" id="rend-dolares" placeholder="0" /></div></div>
+      </div>
+      <div class="row-actions">
+        <button class="primary" id="rend-add"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Registrar rendición</button>
+      </div>
+      <div class="status" id="rend-status"></div>
+    </div>
+    <div class="card" id="rendiciones-list"><div class="empty">Todavía no le rendiste dólares.</div></div>
   </div>
 </div>
 
@@ -287,7 +314,8 @@ const reservasCol = collection(db, 'reservas');
 const gastosCol = collection(db, 'gastos');
 const notasCol = collection(db, 'notas');
 const mesesCerradosCol = collection(db, 'mesesCerrados');
-const pagosLucyCol = collection(db, 'pagosLucy');
+const conversionesUSDCol = collection(db, 'conversionesUSD');
+const rendicionesUSDCol = collection(db, 'rendicionesUSD');
 
 const fmt = (n) => {
   n = Math.round(n || 0);
@@ -308,7 +336,8 @@ let reservas = [];
 let gastos = [];
 let notas = [];
 let mesesCerrados = [];
-let pagosLucy = [];
+let conversionesUSD = [];
+let rendicionesUSD = [];
 let currentRole = null;
 let listenersAttached = false;
 const today = new Date();
@@ -389,7 +418,8 @@ function renderGastos() {
 }
 
 function monthKey(dateStr) { return (dateStr || '').slice(0, 7); }
-function mesEstaCerrado(mes) { return mesesCerrados.includes(mes); }
+function mesEstaCerrado(mes) { return mesesCerrados.some(mc => mc.mes === mes); }
+function getMesCerradoInfo(mes) { return mesesCerrados.find(mc => mc.mes === mes); }
 
 function populateMonths() {
   const sel = document.getElementById('s-mes');
@@ -431,40 +461,66 @@ function renderResumen() {
     btn.style.display = 'none';
   } else {
     const cerrado = mesEstaCerrado(mes);
+    const info = getMesCerradoInfo(mes);
     badge.style.display = cerrado ? 'inline-block' : 'none';
+    badge.textContent = (cerrado && info && info.cerradoEl) ? '🔒 Cerrado el ' + formatFecha(info.cerradoEl) : '🔒 Mes cerrado';
     btn.style.display = 'inline-flex';
-    btn.textContent = cerrado ? 'Reabrir este mes' : 'Cerrar este mes';
+    if (!(cerrarMesArmed && cerrarMesArmedFor === mes)) {
+      btn.textContent = cerrado ? 'Reabrir este mes' : 'Cerrar este mes';
+    }
   }
-
-  renderSaldoLucy();
 }
 
-function renderSaldoLucy() {
-  let generadoTotal = 0;
+const fmtUSD = (n) => {
+  n = Math.round(n || 0);
+  return (n < 0 ? '-US$' : 'US$') + Math.abs(n).toLocaleString('es-AR');
+};
+
+function renderRendicion() {
+  let generadoARS = 0;
   reservas.forEach(r => {
     const c = calcReserva(r);
-    generadoTotal += (c.base - c.comision) + (r.limpieza || 0);
+    generadoARS += (c.base - c.comision) + (r.limpieza || 0);
   });
-  gastos.forEach(g => { generadoTotal -= g.monto || 0; });
-  let pagadoTotal = 0;
-  pagosLucy.forEach(p => { pagadoTotal += p.monto || 0; });
-  const saldoPendiente = generadoTotal - pagadoTotal;
+  gastos.forEach(g => { generadoARS -= g.monto || 0; });
 
-  document.getElementById('saldo-lucy-total').textContent = fmt(saldoPendiente);
-  document.getElementById('saldo-generado').textContent = fmt(generadoTotal);
-  document.getElementById('saldo-pagado').textContent = fmt(pagadoTotal);
+  let pesosConvertidos = 0;
+  let dolaresConvertidos = 0;
+  conversionesUSD.forEach(c => {
+    pesosConvertidos += c.pesos || 0;
+    dolaresConvertidos += c.dolares || 0;
+  });
+  const saldoARS = generadoARS - pesosConvertidos;
 
-  const pagoMontoInput = document.getElementById('pago-monto');
-  if (pagoMontoInput && !pagoMontoInput.value) {
-    pagoMontoInput.placeholder = String(Math.round(saldoPendiente));
+  let dolaresRendidos = 0;
+  rendicionesUSD.forEach(u => { dolaresRendidos += u.dolares || 0; });
+  const saldoUSD = dolaresConvertidos - dolaresRendidos;
+
+  document.getElementById('saldo-ars-total').textContent = fmt(saldoARS);
+  document.getElementById('rend-generado').textContent = fmt(generadoARS);
+  document.getElementById('rend-convertido').textContent = fmt(-pesosConvertidos);
+  document.getElementById('saldo-usd-total').textContent = fmtUSD(saldoUSD);
+
+  const convPesosInput = document.getElementById('conv-pesos');
+  if (convPesosInput && !convPesosInput.value) convPesosInput.placeholder = String(Math.round(saldoARS));
+
+  const rendDolaresInput = document.getElementById('rend-dolares');
+  if (rendDolaresInput && !rendDolaresInput.value) rendDolaresInput.placeholder = String(Math.round(saldoUSD));
+
+  const convList = document.getElementById('conversiones-list');
+  if (!conversionesUSD.length) {
+    convList.innerHTML = '<div class="empty">Todavía no registraste ninguna conversión.</div>';
+  } else {
+    const sorted = [...conversionesUSD].sort((a, b) => (b.fecha || '').localeCompare(a.fecha || ''));
+    convList.innerHTML = sorted.map(c => '<div class="list-item nota"><div class="li-top"><div><div class="li-title">Conversión a dólares</div><div class="li-sub">' + formatFecha(c.fecha) + '</div></div><button class="del" data-id="' + c.id + '" data-kind="c" aria-label="Eliminar conversión"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="7" x2="20" y2="7"/><path d="M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"/><path d="M10 7V4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3"/></svg></button></div><div class="li-nums"><span>Pesos: <b>' + fmt(c.pesos) + '</b></span><span>Dólares: <b class="teal">' + fmtUSD(c.dolares) + '</b></span></div></div>').join('');
   }
 
-  const list = document.getElementById('pagos-list');
-  if (!pagosLucy.length) {
-    list.innerHTML = '<div class="empty">Todavía no registraste ningún pago.</div>';
+  const rendList = document.getElementById('rendiciones-list');
+  if (!rendicionesUSD.length) {
+    rendList.innerHTML = '<div class="empty">Todavía no le rendiste dólares.</div>';
   } else {
-    const sorted = [...pagosLucy].sort((a, b) => (b.fecha || '').localeCompare(a.fecha || ''));
-    list.innerHTML = sorted.map(p => '<div class="list-item nota"><div class="li-top"><div><div class="li-title">Pago a Lucy</div><div class="li-sub">' + formatFecha(p.fecha) + '</div></div><button class="del" data-id="' + p.id + '" data-kind="p" aria-label="Eliminar pago"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="7" x2="20" y2="7"/><path d="M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"/><path d="M10 7V4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3"/></svg></button></div><div class="li-nums"><span>Monto: <b class="teal">' + fmt(p.monto) + '</b></span></div></div>').join('');
+    const sorted = [...rendicionesUSD].sort((a, b) => (b.fecha || '').localeCompare(a.fecha || ''));
+    rendList.innerHTML = sorted.map(u => '<div class="list-item nota"><div class="li-top"><div><div class="li-title">Rendición a Lucy</div><div class="li-sub">' + formatFecha(u.fecha) + '</div></div><button class="del" data-id="' + u.id + '" data-kind="u" aria-label="Eliminar rendición"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="7" x2="20" y2="7"/><path d="M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"/><path d="M10 7V4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3"/></svg></button></div><div class="li-nums"><span>Dólares: <b class="teal">' + fmtUSD(u.dolares) + '</b></span></div></div>').join('');
   }
 }
 
@@ -547,6 +603,11 @@ function resetNotaForm() {
   ['n-fecha', 'n-texto'].forEach(id => { document.getElementById(id).value = ''; });
   clearStatusNow(document.getElementById('n-status'));
 }
+function resetRendicionForm() {
+  ['conv-fecha', 'conv-pesos', 'conv-dolares', 'rend-fecha', 'rend-dolares'].forEach(id => { document.getElementById(id).value = ''; });
+  clearStatusNow(document.getElementById('conv-status'));
+  clearStatusNow(document.getElementById('rend-status'));
+}
 
 document.querySelectorAll('.tab').forEach(tab => {
   tab.addEventListener('click', () => {
@@ -556,6 +617,7 @@ document.querySelectorAll('.tab').forEach(tab => {
       if (leaving === 'reservas') resetReservaForm();
       if (leaving === 'gastos') resetGastoForm();
       if (leaving === 'calendario') resetNotaForm();
+      if (leaving === 'rendicion') resetRendicionForm();
     }
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
@@ -563,6 +625,7 @@ document.querySelectorAll('.tab').forEach(tab => {
     document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
     if (tab.dataset.tab === 'resumen') renderResumen();
     if (tab.dataset.tab === 'calendario') renderCalendario();
+    if (tab.dataset.tab === 'rendicion') renderRendicion();
   });
 });
 
@@ -655,17 +718,35 @@ document.getElementById('g-add').addEventListener('click', async () => {
   }
 });
 
-document.getElementById('pago-add').addEventListener('click', async () => {
+document.getElementById('conv-add').addEventListener('click', async () => {
   if (currentRole !== 'editor') return;
-  const status = document.getElementById('pago-status');
-  const fecha = document.getElementById('pago-fecha').value;
-  const elMonto = document.getElementById('pago-monto');
-  const monto = parseFloat(elMonto.value) || 0;
-  if (!fecha || !monto) { setStatus(status, 'Falta la fecha o el monto entregado.', 'err'); return; }
+  const status = document.getElementById('conv-status');
+  const fecha = document.getElementById('conv-fecha').value;
+  const elPesos = document.getElementById('conv-pesos');
+  const elDolares = document.getElementById('conv-dolares');
+  const pesos = parseFloat(elPesos.value) || 0;
+  const dolares = parseFloat(elDolares.value) || 0;
+  if (!fecha || !pesos || !dolares) { setStatus(status, 'Falta la fecha, los pesos o los dólares.', 'err'); return; }
   try {
-    await addDoc(pagosLucyCol, { fecha, monto });
-    document.getElementById('pago-fecha').value = ''; elMonto.value = '';
-    setStatus(status, 'Pago registrado.', 'ok');
+    await addDoc(conversionesUSDCol, { fecha, pesos, dolares });
+    document.getElementById('conv-fecha').value = ''; elPesos.value = ''; elDolares.value = '';
+    setStatus(status, 'Conversión registrada.', 'ok');
+  } catch (e) {
+    setStatus(status, 'No se pudo guardar. Probá de nuevo.', 'err');
+  }
+});
+
+document.getElementById('rend-add').addEventListener('click', async () => {
+  if (currentRole !== 'editor') return;
+  const status = document.getElementById('rend-status');
+  const fecha = document.getElementById('rend-fecha').value;
+  const elDolares = document.getElementById('rend-dolares');
+  const dolares = parseFloat(elDolares.value) || 0;
+  if (!fecha || !dolares) { setStatus(status, 'Falta la fecha o los dólares entregados.', 'err'); return; }
+  try {
+    await addDoc(rendicionesUSDCol, { fecha, dolares });
+    document.getElementById('rend-fecha').value = ''; elDolares.value = '';
+    setStatus(status, 'Rendición registrada.', 'ok');
   } catch (e) {
     setStatus(status, 'No se pudo guardar. Probá de nuevo.', 'err');
   }
@@ -689,20 +770,47 @@ document.getElementById('n-add').addEventListener('click', async () => {
 document.getElementById('s-mes').addEventListener('change', renderResumen);
 document.getElementById('g-mes').addEventListener('change', renderGastos);
 
+let cerrarMesArmed = false;
+let cerrarMesArmedFor = null;
+let cerrarMesArmedTimeout = null;
+
 document.getElementById('cerrar-mes-btn').addEventListener('click', async () => {
   if (currentRole !== 'editor') return;
   const mes = document.getElementById('s-mes').value;
   if (!mes) return;
   const status = document.getElementById('mes-status');
+  const btn = document.getElementById('cerrar-mes-btn');
   const cerrado = mesEstaCerrado(mes);
-  try {
-    if (cerrado) {
-      await deleteDoc(doc(db, 'mesesCerrados', mes));
-      setStatus(status, 'Mes reabierto.', 'ok');
-    } else {
-      await setDoc(doc(db, 'mesesCerrados', mes), { cerrado: true });
-      setStatus(status, 'Mes de ' + formatMes(mes) + ' cerrado. No se van a poder agregar más reservas ni gastos ahí.', 'ok');
+
+  if (!cerrado) {
+    try {
+      await setDoc(doc(db, 'mesesCerrados', mes), { cerrado: true, cerradoEl: today.getFullYear() + '-' + pad(today.getMonth() + 1) + '-' + pad(today.getDate()) });
+      setStatus(status, 'Mes de ' + formatMes(mes) + ' cerrado. No se van a poder agregar ni borrar reservas ni gastos ahí.', 'ok');
+    } catch (e) {
+      setStatus(status, 'No se pudo actualizar. Probá de nuevo.', 'err');
     }
+    return;
+  }
+
+  if (!(cerrarMesArmed && cerrarMesArmedFor === mes)) {
+    cerrarMesArmed = true;
+    cerrarMesArmedFor = mes;
+    btn.textContent = '¿Seguro? Tocá de nuevo para reabrir';
+    if (cerrarMesArmedTimeout) clearTimeout(cerrarMesArmedTimeout);
+    cerrarMesArmedTimeout = setTimeout(() => {
+      cerrarMesArmed = false;
+      cerrarMesArmedFor = null;
+      btn.textContent = 'Reabrir este mes';
+    }, 4000);
+    return;
+  }
+
+  cerrarMesArmed = false;
+  cerrarMesArmedFor = null;
+  if (cerrarMesArmedTimeout) { clearTimeout(cerrarMesArmedTimeout); cerrarMesArmedTimeout = null; }
+  try {
+    await deleteDoc(doc(db, 'mesesCerrados', mes));
+    setStatus(status, 'Mes reabierto.', 'ok');
   } catch (e) {
     setStatus(status, 'No se pudo actualizar. Probá de nuevo.', 'err');
   }
@@ -732,10 +840,29 @@ document.addEventListener('click', async (e) => {
   const kind = btn.dataset.kind;
   if (armedTimeout) { clearTimeout(armedTimeout); armedTimeout = null; }
   armedDel = null;
+  btn.classList.remove('armed');
+  if (btn.dataset.original) btn.innerHTML = btn.dataset.original;
+
+  if (kind === 'r') {
+    const item = reservas.find(r => r.id === id);
+    if (item && mesEstaCerrado(monthKey(item.entrada))) {
+      setStatus(document.getElementById('r-status'), 'No se puede borrar: el mes de ' + formatMes(monthKey(item.entrada)) + ' está cerrado.', 'err');
+      return;
+    }
+  }
+  if (kind === 'g') {
+    const item = gastos.find(g => g.id === id);
+    if (item && mesEstaCerrado(monthKey(item.fecha))) {
+      setStatus(document.getElementById('g-status'), 'No se puede borrar: el mes de ' + formatMes(monthKey(item.fecha)) + ' está cerrado.', 'err');
+      return;
+    }
+  }
+
   try {
     if (kind === 'r') await deleteDoc(doc(db, 'reservas', id));
     else if (kind === 'n') await deleteDoc(doc(db, 'notas', id));
-    else if (kind === 'p') await deleteDoc(doc(db, 'pagosLucy', id));
+    else if (kind === 'c') await deleteDoc(doc(db, 'conversionesUSD', id));
+    else if (kind === 'u') await deleteDoc(doc(db, 'rendicionesUSD', id));
     else await deleteDoc(doc(db, 'gastos', id));
   } catch (e) { /* la regla de seguridad bloquea a quien no sea editor */ }
 });
@@ -745,23 +872,27 @@ function attachListeners() {
   listenersAttached = true;
   onSnapshot(reservasCol, snap => {
     reservas = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    renderReservas(); renderResumen(); renderCalendario();
+    renderReservas(); renderResumen(); renderCalendario(); renderRendicion();
   });
   onSnapshot(gastosCol, snap => {
     gastos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    renderGastos(); renderResumen();
+    renderGastos(); renderResumen(); renderRendicion();
   });
   onSnapshot(notasCol, snap => {
     notas = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     renderCalendario();
   });
   onSnapshot(mesesCerradosCol, snap => {
-    mesesCerrados = snap.docs.map(d => d.id);
+    mesesCerrados = snap.docs.map(d => ({ mes: d.id, ...d.data() }));
     renderResumen();
   });
-  onSnapshot(pagosLucyCol, snap => {
-    pagosLucy = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    renderResumen();
+  onSnapshot(conversionesUSDCol, snap => {
+    conversionesUSD = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderRendicion();
+  });
+  onSnapshot(rendicionesUSDCol, snap => {
+    rendicionesUSD = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderRendicion();
   });
 }
 
