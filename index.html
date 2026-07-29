@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <title>Colpayo 40</title>
-<meta name="theme-color" content="#1D9E75">
+<meta name="theme-color" content="#B5542F">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Colpayo 40">
@@ -13,90 +13,93 @@
 <link rel="icon" href="icon-192.png">
 <style>
   * { box-sizing: border-box; }
-  body { margin: 0; padding: 1.25rem; font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: #24231f; background: #f7f5f0; }
-  .c40 { max-width: 720px; margin: 0 auto; color: #24231f; }
+  body { margin: 0; padding: 1.25rem; font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: #3A2E22; background: #F7F1E6; }
+  .c40 { max-width: 720px; margin: 0 auto; color: #3A2E22; }
   .banner { display: none; background: #FAEEDA; color: #633806; font-size: 12.5px; padding: 8px 12px; border-radius: 10px; margin-bottom: 1rem; }
   .hdr { display: flex; align-items: center; gap: 10px; margin-bottom: 1.25rem; }
-  .hdr-bar { width: 4px; height: 30px; background: #1D9E75; border-radius: 2px; flex-shrink: 0; }
+  .hdr-bar { width: 4px; height: 30px; background: #B5542F; border-radius: 2px; flex-shrink: 0; }
   .hdr-title { font-size: 19px; font-weight: 600; line-height: 1.2; }
-  .hdr-sub { font-size: 12.5px; color: #6d6a61; margin-top: 1px; }
-  .session-box { text-align: right; font-size: 12px; color: #6d6a61; }
-  .tabs { display: flex; gap: 2px; margin-bottom: 1.25rem; border-bottom: 0.5px solid #e3e0d5; overflow-x: auto; }
-  .tab { display: flex; align-items: center; gap: 6px; padding: 8px 12px; font-size: 13.5px; color: #6d6a61; cursor: pointer; border-bottom: 2px solid transparent; user-select: none; white-space: nowrap; }
+  .hdr-sub { font-size: 12.5px; color: #766B5A; margin-top: 1px; }
+  .session-box { text-align: right; font-size: 12px; color: #766B5A; }
+  .tabs { display: flex; gap: 2px; margin-bottom: 1.25rem; border-bottom: 0.5px solid #E6DCC6; overflow-x: auto; }
+  .tab { display: flex; align-items: center; gap: 6px; padding: 8px 12px; font-size: 13.5px; color: #766B5A; cursor: pointer; border-bottom: 2px solid transparent; user-select: none; white-space: nowrap; }
   .tab svg { opacity: 0.75; }
-  .tab.active { color: #24231f; font-weight: 600; border-bottom-color: #1D9E75; }
-  .tab.active svg { opacity: 1; color: #1D9E75; }
+  .tab.active { color: #3A2E22; font-weight: 600; border-bottom-color: #B5542F; }
+  .tab.active svg { opacity: 1; color: #B5542F; }
   .panel { display: none; }
   .panel.active { display: block; }
-  .card { background: #ffffff; border: 0.5px solid #e3e0d5; border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 1rem; }
+  .card { background: #ffffff; border: 0.5px solid #E6DCC6; border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 1rem; }
   .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
-  label { display: block; font-size: 12px; color: #6d6a61; margin-bottom: 4px; }
-  input { width: 100%; height: 36px; border-radius: 10px; border: 0.5px solid #e3e0d5; background: #ffffff; color: #24231f; padding: 0 10px; font-size: 14px; }
-  input:focus { outline: none; border-color: #1D9E75; box-shadow: 0 0 0 2px rgba(29,158,117,0.18); }
+  label { display: block; font-size: 12px; color: #766B5A; margin-bottom: 4px; }
+  input { width: 100%; height: 36px; border-radius: 10px; border: 0.5px solid #E6DCC6; background: #ffffff; color: #3A2E22; padding: 0 10px; font-size: 14px; }
+  input:focus { outline: none; border-color: #B5542F; box-shadow: 0 0 0 2px rgba(181,84,47,0.18); }
   input.invalid { border-color: #E24B4A; }
   input.invalid:focus { box-shadow: 0 0 0 2px rgba(226,75,74,0.18); }
-  .static-field { height: 36px; border-radius: 10px; border: 0.5px solid #e3e0d5; background: #f4f2ec; color: #6d6a61; display: flex; align-items: center; padding: 0 10px; font-size: 14px; }
+  .static-field { height: 36px; border-radius: 10px; border: 0.5px solid #E6DCC6; background: #F1E9D6; color: #766B5A; display: flex; align-items: center; padding: 0 10px; font-size: 14px; }
   .amount-field { position: relative; }
-  .amount-field .currency { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: #6d6a61; font-size: 14px; pointer-events: none; }
+  .amount-field .currency { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: #766B5A; font-size: 14px; pointer-events: none; }
   .amount-field input { padding-left: 20px; }
   .field { margin-bottom: 10px; }
   .row-actions { display: flex; justify-content: flex-end; margin-top: 6px; }
-  button { height: 36px; padding: 0 16px; border-radius: 10px; border: 0.5px solid #cfcabb; background: #ffffff; color: #24231f; font-size: 13.5px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
-  button:hover { background: #f4f2ec; }
-  button.primary { background: #1D9E75; border-color: #1D9E75; color: #ffffff; }
-  button.primary:hover { background: #0F6E56; }
-  .list-item { border-top: 0.5px solid #e3e0d5; padding: 10px 0 10px 10px; border-left: 3px solid transparent; }
+  button { height: 36px; padding: 0 16px; border-radius: 10px; border: 0.5px solid #D6C9AA; background: #ffffff; color: #3A2E22; font-size: 13.5px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+  button:hover { background: #F1E9D6; }
+  button.primary { background: #B5542F; border-color: #B5542F; color: #ffffff; }
+  button.primary:hover { background: #8F3F22; }
+  .list-item { border-top: 0.5px solid #E6DCC6; padding: 10px 0 10px 10px; border-left: 3px solid transparent; }
   .list-item:first-child { border-top: none; }
-  .list-item.res { border-left-color: #378ADD; }
-  .list-item.gas { border-left-color: #D85A30; }
+  .list-item.res { border-left-color: #B5542F; }
+  .list-item.gas { border-left-color: #A67A1E; }
   .list-item.nota { border-left-color: #BA7517; }
   .cal-note { font-size: 10px; color: #633806; margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 500; }
   .li-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
   .li-title { font-size: 14px; font-weight: 600; }
-  .li-sub { font-size: 12px; color: #6d6a61; margin-top: 2px; }
-  .li-nums { display: flex; gap: 16px; font-size: 12px; color: #6d6a61; margin-top: 6px; flex-wrap: wrap; }
-  .li-nums b { color: #24231f; font-weight: 600; }
-  .li-nums b.teal { color: #085041; }
-  .li-nums b.purple { color: #3C3489; }
-  .del { background: none; border: none; color: #9c988c; cursor: pointer; padding: 2px 4px; height: auto; }
+  .li-sub { font-size: 12px; color: #766B5A; margin-top: 2px; }
+  .li-nums { display: flex; gap: 16px; font-size: 12px; color: #766B5A; margin-top: 6px; flex-wrap: wrap; }
+  .li-nums b { color: #3A2E22; font-weight: 600; }
+  .li-nums b.teal { color: #3F5230; }
+  .li-nums b.purple { color: #6B4A2B; }
+  .del { background: none; border: none; color: #A69A85; cursor: pointer; padding: 2px 4px; height: auto; }
   .del:hover { color: #A32D2D; background: none; }
   .del.armed { color: #A32D2D; font-size: 11px; font-weight: 600; white-space: nowrap; padding: 3px 9px; border: 1px solid #F09595; border-radius: 20px; background: #FCEBEB; }
   .del.armed:hover { background: #F7C1C1; }
   .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 1rem; }
-  .metric { background: #f4f2ec; border-radius: 10px; padding: 1rem; border-left: 3px solid #cfcabb; }
-  .metric .lbl { font-size: 12.5px; color: #6d6a61; }
+  .metric { background: #F1E9D6; border-radius: 10px; padding: 1rem; border-left: 3px solid #D6C9AA; }
+  .metric .lbl { font-size: 12.5px; color: #766B5A; }
   .metric .val { font-size: 21px; font-weight: 600; margin-top: 4px; }
-  .metric.blue { border-left-color: #378ADD; }
-  .metric.purple { border-left-color: #7F77DD; }
-  .metric.coral { border-left-color: #D85A30; }
-  .metric.lucy { background: #E1F5EE; border-left: none; }
-  .metric.lucy .lbl, .metric.lucy .val { color: #085041; }
+  .metric.blue { border-left-color: #B5542F; }
+  .metric.purple { border-left-color: #8A6D3A; }
+  .metric.coral { border-left-color: #C99A3A; }
+  .metric.lucy { background: #E7EEDD; border-left: none; }
+  .metric.lucy .lbl, .metric.lucy .val { color: #3F5230; }
   .metric.lucy .val { font-size: 25px; }
   .metric.lucy .breakdown { margin-top: 10px; padding-top: 8px; border-top: 0.5px solid rgba(8,80,65,0.18); display: flex; flex-direction: column; gap: 3px; }
   .metric.lucy .breakdown span { display: flex; justify-content: space-between; font-size: 12px; }
   .metric.lucy .breakdown b { font-weight: 600; }
   .metric.lucy .breakdown b.neg { color: #791F1F; }
-  .metric .split { font-size: 11.5px; color: #6d6a61; margin-top: 4px; }
-  select { width: 100%; height: 36px; border-radius: 10px; border: 0.5px solid #e3e0d5; background: #ffffff; color: #24231f; padding: 0 10px; font-size: 14px; }
-  .empty { font-size: 13px; color: #9c988c; padding: 12px 0; }
-  .status { font-size: 12px; color: #9c988c; margin-top: 6px; min-height: 16px; }
+  .metric .split { font-size: 11.5px; color: #766B5A; margin-top: 4px; }
+  select { width: 100%; height: 36px; border-radius: 10px; border: 0.5px solid #E6DCC6; background: #ffffff; color: #3A2E22; padding: 0 10px; font-size: 14px; }
+  .empty { font-size: 13px; color: #A69A85; padding: 12px 0; }
+  .status { font-size: 12px; color: #A69A85; margin-top: 6px; min-height: 16px; }
   .status.err { font-size: 14px; font-weight: 600; color: #791F1F; background: #FCEBEB; padding: 10px 12px; border-radius: 10px; }
-  .status.ok { color: #0F6E56; }
+  .status.ok { color: #3F5230; }
   .cal-nav { display: flex; align-items: center; justify-content: center; gap: 14px; margin-bottom: 12px; }
   .cal-nav .icon-btn { width: 32px; height: 32px; padding: 0; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
   .cal-label { font-size: 15px; font-weight: 600; min-width: 140px; text-align: center; }
   .cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; }
-  .cal-wd { font-size: 11px; color: #9c988c; text-align: center; padding-bottom: 6px; font-weight: 600; }
-  .cal-cell { min-height: 62px; border-radius: 8px; background: #f4f2ec; padding: 4px 5px; position: relative; }
+  .cal-wd { font-size: 11px; color: #A69A85; text-align: center; padding-bottom: 6px; font-weight: 600; }
+  .cal-cell { min-height: 62px; border-radius: 8px; background: #F1E9D6; padding: 4px 5px; position: relative; }
   .cal-cell.empty { background: transparent; }
   .cal-cell:not(.empty) { cursor: pointer; }
-  .cal-cell:not(.empty):hover { box-shadow: 0 0 0 1.5px #cfcabb; }
-  .cal-cell.today .cal-day { box-shadow: 0 0 0 1.5px #1D9E75; border-radius: 50%; }
-  .cal-day { font-size: 11px; color: #6d6a61; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; }
+  .cal-cell:not(.empty):hover { box-shadow: 0 0 0 1.5px #D6C9AA; }
+  .cal-cell.today .cal-day { box-shadow: 0 0 0 1.5px #B5542F; border-radius: 50%; }
+  .cal-day { font-size: 11px; color: #766B5A; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; }
   .cal-cell[style] .cal-day { color: inherit; font-weight: 600; }
   .cal-guest { font-size: 10.5px; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
   .cal-legend { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
   .cal-chip { font-size: 11.5px; padding: 4px 10px; border-radius: 20px; font-weight: 600; }
+  .gallery { display: flex; gap: 8px; overflow-x: auto; margin-bottom: 1.25rem; padding-bottom: 2px; -webkit-overflow-scrolling: touch; }
+  .gallery a { flex-shrink: 0; }
+  .gallery img { display: block; height: 90px; width: 130px; object-fit: cover; border-radius: 10px; border: 0.5px solid #E6DCC6; }
   .role-viewer .editor-only { display: none !important; }
   .role-viewer .del { display: none !important; }
 </style>
@@ -132,6 +135,13 @@
       <div id="session-info"></div>
       <button id="logout-btn" style="height:28px; padding:0 10px; font-size:12px; margin-top:4px;">Cerrar sesión</button>
     </div>
+  </div>
+
+  <div class="gallery">
+    <a href="images/foto-living.jpg" target="_blank" rel="noopener"><img src="images/foto-living.jpg" alt="Living" loading="lazy"></a>
+    <a href="images/foto-cocina.jpg" target="_blank" rel="noopener"><img src="images/foto-cocina.jpg" alt="Cocina y comedor" loading="lazy"></a>
+    <a href="images/foto-hall.jpg" target="_blank" rel="noopener"><img src="images/foto-hall.jpg" alt="Hall de entrada" loading="lazy"></a>
+    <a href="images/foto-dormitorio.jpg" target="_blank" rel="noopener"><img src="images/foto-dormitorio.jpg" alt="Dormitorio" loading="lazy"></a>
   </div>
 
   <div class="tabs">
@@ -247,14 +257,15 @@ const notasCol = collection(db, 'notas');
 
 const fmt = (n) => '$' + Math.round(n || 0).toLocaleString('es-AR');
 const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const MESES_ABR = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
 const WEEKDAYS = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
 const PALETTE = [
-  { bg: '#B5D4F4', text: '#0C447C' },
-  { bg: '#9FE1CB', text: '#085041' },
-  { bg: '#CECBF6', text: '#3C3489' },
-  { bg: '#F5C4B3', text: '#712B13' },
-  { bg: '#F4C0D1', text: '#72243E' },
-  { bg: '#FAC775', text: '#633806' }
+  { bg: '#E8C3B0', text: '#7A3419' },
+  { bg: '#EDD9A3', text: '#6B4E14' },
+  { bg: '#D3DEC0', text: '#45562F' },
+  { bg: '#E9D0CF', text: '#6E3230' },
+  { bg: '#E3D2B8', text: '#5C4726' },
+  { bg: '#EAD9A8', text: '#6B5518' }
 ];
 let reservas = [];
 let gastos = [];
@@ -265,6 +276,17 @@ const today = new Date();
 let calState = { year: today.getFullYear(), month: today.getMonth() };
 
 function pad(n) { return n < 10 ? '0' + n : '' + n; }
+function formatFecha(dateStr) {
+  if (!dateStr) return '?';
+  const p = dateStr.split('-');
+  if (p.length !== 3) return dateStr;
+  return parseInt(p[2], 10) + '-' + MESES_ABR[parseInt(p[1], 10) - 1] + '-' + p[0];
+}
+function formatMes(monthKey) {
+  const p = (monthKey || '').split('-');
+  if (p.length !== 2) return monthKey;
+  return MESES_ABR[parseInt(p[1], 10) - 1] + '-' + p[0];
+}
 function setStatus(el, html, type) {
   if (el._clearTimer) { clearTimeout(el._clearTimer); el._clearTimer = null; }
   el.className = 'status' + (type ? ' ' + type : '');
@@ -301,7 +323,7 @@ function renderReservas() {
   const sorted = [...reservas].sort((a, b) => (b.entrada || '').localeCompare(a.entrada || ''));
   list.innerHTML = sorted.map(r => {
     const { base, comision, neto } = calcReserva(r);
-    return '<div class="list-item res"><div class="li-top"><div><div class="li-title">' + (r.huesped || 'Sin nombre') + '</div><div class="li-sub">' + (r.entrada || '?') + ' al ' + (r.salida || '?') + '</div></div><button class="del" data-id="' + r.id + '" data-kind="r" aria-label="Eliminar reserva"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="7" x2="20" y2="7"/><path d="M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"/><path d="M10 7V4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3"/></svg></button></div><div class="li-nums"><span>Pagó: <b>' + fmt(r.pago) + '</b></span><span>Limpieza: <b>' + fmt(r.limpieza) + '</b></span><span>Base: <b>' + fmt(base) + '</b></span><span>Comisión (' + r.comisionPct + '%): <b class="purple">' + fmt(comision) + '</b></span><span>Neto Lucy: <b class="teal">' + fmt(neto) + '</b></span></div></div>';
+    return '<div class="list-item res"><div class="li-top"><div><div class="li-title">' + (r.huesped || 'Sin nombre') + '</div><div class="li-sub">' + formatFecha(r.entrada) + ' al ' + formatFecha(r.salida) + '</div></div><button class="del" data-id="' + r.id + '" data-kind="r" aria-label="Eliminar reserva"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="7" x2="20" y2="7"/><path d="M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"/><path d="M10 7V4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3"/></svg></button></div><div class="li-nums"><span>Pagó: <b>' + fmt(r.pago) + '</b></span><span>Limpieza: <b>' + fmt(r.limpieza) + '</b></span><span>Base: <b>' + fmt(base) + '</b></span><span>Comisión (' + r.comisionPct + '%): <b class="purple">' + fmt(comision) + '</b></span><span>Neto Lucy: <b class="teal">' + fmt(neto) + '</b></span></div></div>';
   }).join('');
 }
 
@@ -309,7 +331,7 @@ function renderGastos() {
   const list = document.getElementById('g-list');
   if (!gastos.length) { list.innerHTML = '<div class="empty">Todavía no cargaste ningún gasto.</div>'; return; }
   const sorted = [...gastos].sort((a, b) => (b.fecha || '').localeCompare(a.fecha || ''));
-  list.innerHTML = sorted.map(g => '<div class="list-item gas"><div class="li-top"><div><div class="li-title">' + (g.concepto || 'Sin concepto') + '</div><div class="li-sub">' + (g.fecha || '?') + '</div></div><button class="del" data-id="' + g.id + '" data-kind="g" aria-label="Eliminar gasto"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="7" x2="20" y2="7"/><path d="M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"/><path d="M10 7V4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3"/></svg></button></div><div class="li-nums"><span>Monto: <b>' + fmt(g.monto) + '</b></span></div></div>').join('');
+  list.innerHTML = sorted.map(g => '<div class="list-item gas"><div class="li-top"><div><div class="li-title">' + (g.concepto || 'Sin concepto') + '</div><div class="li-sub">' + formatFecha(g.fecha) + '</div></div><button class="del" data-id="' + g.id + '" data-kind="g" aria-label="Eliminar gasto"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="7" x2="20" y2="7"/><path d="M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"/><path d="M10 7V4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3"/></svg></button></div><div class="li-nums"><span>Monto: <b>' + fmt(g.monto) + '</b></span></div></div>').join('');
 }
 
 function monthKey(dateStr) { return (dateStr || '').slice(0, 7); }
@@ -321,7 +343,7 @@ function populateMonths() {
   gastos.forEach(g => g.fecha && months.add(monthKey(g.fecha)));
   const arr = [...months].sort().reverse();
   const prev = sel.value;
-  sel.innerHTML = arr.length ? arr.map(m => '<option value="' + m + '">' + m + '</option>').join('') : '<option value="">Sin datos todavía</option>';
+  sel.innerHTML = arr.length ? arr.map(m => '<option value="' + m + '">' + formatMes(m) + '</option>').join('') : '<option value="">Sin datos todavía</option>';
   if (arr.includes(prev)) sel.value = prev;
 }
 
@@ -395,7 +417,7 @@ function renderNotas() {
   const prefix = y + '-' + pad(m + 1);
   const delMes = notas.filter(n => (n.fecha || '').slice(0, 7) === prefix).sort((a, b) => (a.fecha || '').localeCompare(b.fecha || ''));
   if (!delMes.length) { list.innerHTML = '<div class="empty">Sin notas este mes.</div>'; return; }
-  list.innerHTML = delMes.map(n => '<div class="list-item nota"><div class="li-top"><div><div class="li-title">' + n.texto + '</div><div class="li-sub">' + n.fecha + '</div></div><button class="del" data-id="' + n.id + '" data-kind="n" aria-label="Eliminar nota"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="7" x2="20" y2="7"/><path d="M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"/><path d="M10 7V4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3"/></svg></button></div></div>').join('');
+  list.innerHTML = delMes.map(n => '<div class="list-item nota"><div class="li-top"><div><div class="li-title">' + n.texto + '</div><div class="li-sub">' + formatFecha(n.fecha) + '</div></div><button class="del" data-id="' + n.id + '" data-kind="n" aria-label="Eliminar nota"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="7" x2="20" y2="7"/><path d="M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"/><path d="M10 7V4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3"/></svg></button></div></div>').join('');
 }
 
 function clearStatusNow(el) {
@@ -491,7 +513,7 @@ document.getElementById('r-add').addEventListener('click', async () => {
   const conflict = findOverlap(entrada, salida);
   if (conflict) {
     elEntrada.classList.add('invalid'); elSalida.classList.add('invalid');
-    setStatus(status, 'Esas fechas se cruzan con la estadía de <b>' + (conflict.huesped || 'un inquilino sin nombre') + '</b>, del ' + conflict.entrada + ' al ' + conflict.salida + '.', 'err');
+    setStatus(status, 'Esas fechas se cruzan con la estadía de <b>' + (conflict.huesped || 'un inquilino sin nombre') + '</b>, del ' + formatFecha(conflict.entrada) + ' al ' + formatFecha(conflict.salida) + '.', 'err');
     return;
   }
   try {
