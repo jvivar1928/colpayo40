@@ -205,6 +205,10 @@
       </div>
       <div class="status" id="g-status"></div>
     </div>
+    <div class="card">
+      <label>Mes</label>
+      <select id="g-mes"></select>
+    </div>
     <div class="card" id="g-list"><div class="empty">Cargando gastos...</div></div>
   </div>
 
@@ -337,10 +341,23 @@ function renderReservas() {
   }).join('');
 }
 
+function populateGastoMonths() {
+  const sel = document.getElementById('g-mes');
+  const months = new Set();
+  gastos.forEach(g => g.fecha && months.add(monthKey(g.fecha)));
+  const arr = [...months].sort().reverse();
+  const prev = sel.value;
+  sel.innerHTML = arr.length ? arr.map(m => '<option value="' + m + '">' + formatMes(m) + '</option>').join('') : '<option value="">Sin gastos todavía</option>';
+  if (arr.includes(prev)) sel.value = prev;
+}
+
 function renderGastos() {
+  populateGastoMonths();
   const list = document.getElementById('g-list');
-  if (!gastos.length) { list.innerHTML = '<div class="empty">Todavía no cargaste ningún gasto.</div>'; return; }
-  const sorted = [...gastos].sort((a, b) => (b.fecha || '').localeCompare(a.fecha || ''));
+  const mes = document.getElementById('g-mes').value;
+  const delMes = gastos.filter(g => monthKey(g.fecha) === mes);
+  if (!delMes.length) { list.innerHTML = '<div class="empty">' + (gastos.length ? 'Sin gastos ese mes.' : 'Todavía no cargaste ningún gasto.') + '</div>'; return; }
+  const sorted = [...delMes].sort((a, b) => (b.fecha || '').localeCompare(a.fecha || ''));
   list.innerHTML = sorted.map(g => '<div class="list-item gas"><div class="li-top"><div><div class="li-title">' + (g.concepto || 'Sin concepto') + '</div><div class="li-sub">' + formatFecha(g.fecha) + '</div></div><button class="del" data-id="' + g.id + '" data-kind="g" aria-label="Eliminar gasto"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="7" x2="20" y2="7"/><path d="M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"/><path d="M10 7V4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3"/></svg></button></div><div class="li-nums"><span>Monto: <b>' + fmt(g.monto) + '</b></span></div></div>').join('');
 }
 
@@ -593,6 +610,7 @@ document.getElementById('n-add').addEventListener('click', async () => {
 });
 
 document.getElementById('s-mes').addEventListener('change', renderResumen);
+document.getElementById('g-mes').addEventListener('change', renderGastos);
 
 document.getElementById('cerrar-mes-btn').addEventListener('click', async () => {
   if (currentRole !== 'editor') return;
