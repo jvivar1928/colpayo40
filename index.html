@@ -402,9 +402,10 @@ function populateGastoMonths() {
   const sel = document.getElementById('g-mes');
   const months = new Set();
   gastos.forEach(g => g.fecha && months.add(monthKey(g.fecha)));
+  mesesCerrados.forEach(mc => months.add(mc.mes));
   const arr = [...months].sort().reverse();
   const prev = sel.value;
-  sel.innerHTML = arr.length ? arr.map(m => '<option value="' + m + '">' + formatMes(m) + '</option>').join('') : '<option value="">Sin gastos todavía</option>';
+  sel.innerHTML = arr.length ? arr.map(m => '<option value="' + m + '">' + formatMes(m) + (mesEstaCerrado(m) ? ' 🔒' : '') + '</option>').join('') : '<option value="">Sin gastos todavía</option>';
   if (arr.includes(prev)) sel.value = prev;
 }
 
@@ -427,9 +428,10 @@ function populateMonths() {
   const months = new Set();
   reservas.forEach(r => r.entrada && months.add(monthKey(r.entrada)));
   gastos.forEach(g => g.fecha && months.add(monthKey(g.fecha)));
+  mesesCerrados.forEach(mc => months.add(mc.mes));
   const arr = [...months].sort().reverse();
   const prev = sel.value;
-  sel.innerHTML = arr.length ? arr.map(m => '<option value="' + m + '">' + formatMes(m) + '</option>').join('') : '<option value="">Sin datos todavía</option>';
+  sel.innerHTML = arr.length ? arr.map(m => '<option value="' + m + '">' + formatMes(m) + (mesEstaCerrado(m) ? ' 🔒' : '') + '</option>').join('') : '<option value="">Sin datos todavía</option>';
   if (arr.includes(prev)) sel.value = prev;
 }
 
