@@ -26,14 +26,8 @@
   .tab svg { opacity: 0.75; }
   .tab.active { color: #3A2E22; font-weight: 600; border-bottom-color: #B5542F; }
   .tab.active svg { opacity: 1; color: #B5542F; }
-  .panel { display: none; position: relative; border-radius: 16px; padding: 14px; background-size: cover; background-position: center; background-repeat: no-repeat; min-height: 380px; }
+  .panel { display: none; }
   .panel.active { display: block; }
-  .panel::before { content: ''; position: absolute; inset: 0; background: rgba(247,241,230,0.85); border-radius: 16px; z-index: 0; }
-  .panel > * { position: relative; z-index: 1; }
-  #panel-calendario { background-image: url('images/foto-living.jpg'); }
-  #panel-reservas { background-image: url('images/foto-dormitorio.jpg'); }
-  #panel-gastos { background-image: url('images/foto-cocina.jpg'); }
-  #panel-resumen { background-image: url('images/foto-hall.jpg'); }
   .card { background: #ffffff; border: 0.5px solid #E6DCC6; border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 1rem; }
   .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
   label { display: block; font-size: 12px; color: #766B5A; margin-bottom: 4px; }
@@ -104,20 +98,26 @@
   .cal-legend { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
   .cal-chip { font-size: 11.5px; padding: 4px 10px; border-radius: 20px; font-weight: 600; }
   .role-viewer .editor-only { display: none !important; }
+  .login-bg { position: fixed; inset: 0; background-size: cover; background-position: center; z-index: -1; opacity: 0; transition: opacity 1.8s ease-in-out; }
+  .login-bg.visible { opacity: 1; }
+  .login-hdr-chip { background: rgba(255,255,255,0.88); border-radius: 14px; padding: 10px 16px; display: inline-flex; margin-left: auto; margin-right: auto; width: fit-content; box-shadow: 0 4px 18px rgba(58,46,34,0.12); }
+  .login-card { box-shadow: 0 10px 34px rgba(58,46,34,0.18); }
   .role-viewer .del { display: none !important; }
 </style>
 </head>
 <body>
 
-<div id="login-screen" class="c40" style="max-width:360px; margin-top: 12vh;">
-  <div class="hdr" style="justify-content:center;">
+<div id="login-bg-a" class="login-bg"></div>
+<div id="login-bg-b" class="login-bg"></div>
+<div id="login-screen" class="c40" style="max-width:360px; margin-top: 12vh; position:relative; z-index:1;">
+  <div class="hdr login-hdr-chip" style="justify-content:center;">
     <div class="hdr-bar"></div>
     <div>
       <div class="hdr-title">Colpayo 40</div>
       <div class="hdr-sub">Gestión de alquiler temporario</div>
     </div>
   </div>
-  <div class="card">
+  <div class="card login-card">
     <div class="field"><label>Correo</label><input type="email" id="login-email" placeholder="tu@correo.com" /></div>
     <div class="field"><label>Contraseña</label><input type="password" id="login-pass" placeholder="Contraseña" /></div>
     <div class="row-actions" style="justify-content:stretch;">
@@ -606,6 +606,32 @@ function attachListeners() {
   });
 }
 
+const LOGIN_PHOTOS = ['images/foto-living.jpg', 'images/foto-cocina.jpg', 'images/foto-hall.jpg', 'images/foto-dormitorio.jpg'];
+let loginBgTimer = null;
+let loginBgIndex = 1;
+let loginBgShowingA = true;
+function startLoginBgRotation() {
+  if (loginBgTimer) return;
+  const a = document.getElementById('login-bg-a');
+  const b = document.getElementById('login-bg-b');
+  a.style.backgroundImage = "url('" + LOGIN_PHOTOS[0] + "')";
+  a.classList.add('visible');
+  loginBgTimer = setInterval(() => {
+    const nextImg = LOGIN_PHOTOS[loginBgIndex % LOGIN_PHOTOS.length];
+    loginBgIndex++;
+    const showing = loginBgShowingA ? a : b;
+    const hidden = loginBgShowingA ? b : a;
+    hidden.style.backgroundImage = "url('" + nextImg + "')";
+    hidden.classList.add('visible');
+    showing.classList.remove('visible');
+    loginBgShowingA = !loginBgShowingA;
+  }, 5000);
+}
+function stopLoginBgRotation() {
+  if (loginBgTimer) { clearInterval(loginBgTimer); loginBgTimer = null; }
+}
+startLoginBgRotation();
+
 onAuthStateChanged(auth, user => {
   if (user) {
     currentRole = user.uid === EDITOR_UID ? 'editor' : 'viewer';
@@ -614,11 +640,13 @@ onAuthStateChanged(auth, user => {
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('app-root').style.display = 'block';
     document.getElementById('session-info').textContent = user.email + ' · ' + (currentRole === 'editor' ? 'edición' : 'solo lectura');
+    stopLoginBgRotation();
     attachListeners();
   } else {
     currentRole = null;
     document.getElementById('login-screen').style.display = 'block';
     document.getElementById('app-root').style.display = 'none';
+    startLoginBgRotation();
   }
 });
 
