@@ -212,6 +212,11 @@
     <div class="card">
       <label>Mes</label>
       <select id="s-mes"></select>
+      <div style="margin-top:12px; display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+        <span class="cal-chip" id="mes-cerrado-badge" style="display:none; background:#F1E9D6; color:#766B5A;">🔒 Mes cerrado</span>
+        <button id="cerrar-mes-btn" class="editor-only" style="display:none;">Cerrar este mes</button>
+      </div>
+      <div class="status" id="mes-status"></div>
     </div>
     <div class="metrics">
       <div class="metric blue"><div class="lbl">Ingresos (huéspedes)</div><div class="val" id="s-ingresos">$0</div></div>
@@ -233,7 +238,7 @@
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js';
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js';
-import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot } from 'https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js';
+import { getFirestore, collection, addDoc, deleteDoc, doc, setDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js';
 
 const firebaseConfig = {
   apiKey: "AIzaSyDm4VIjmqFBgCZ3fVAkuOH4I4EMh3UVKkA",
@@ -252,6 +257,7 @@ const db = getFirestore(fbApp);
 const reservasCol = collection(db, 'reservas');
 const gastosCol = collection(db, 'gastos');
 const notasCol = collection(db, 'notas');
+const mesesCerradosCol = collection(db, 'mesesCerrados');
 
 const fmt = (n) => {
   n = Math.round(n || 0);
@@ -271,6 +277,7 @@ const PALETTE = [
 let reservas = [];
 let gastos = [];
 let notas = [];
+let mesesCerrados = [];
 let currentRole = null;
 let listenersAttached = false;
 const today = new Date();
@@ -338,6 +345,7 @@ function renderGastos() {
 }
 
 function monthKey(dateStr) { return (dateStr || '').slice(0, 7); }
+function mesEstaCerrado(mes) { return mesesCerrados.includes(mes); }
 
 function populateMonths() {
   const sel = document.getElementById('s-mes');
@@ -371,6 +379,18 @@ function renderResumen() {
   document.getElementById('s-lucy-gastos').textContent = fmt(-gastosMes);
   document.getElementById('s-lucy-estadia').textContent = fmt(estadiaMes);
   document.getElementById('s-lucy-limpieza').textContent = fmt(limpiezaMes);
+
+  const badge = document.getElementById('mes-cerrado-badge');
+  const btn = document.getElementById('cerrar-mes-btn');
+  if (!mes) {
+    badge.style.display = 'none';
+    btn.style.display = 'none';
+  } else {
+    const cerrado = mesEstaCerrado(mes);
+    badge.style.display = cerrado ? 'inline-block' : 'none';
+    btn.style.display = 'inline-flex';
+    btn.textContent = cerrado ? 'Reabrir este mes' : 'Cerrar este mes';
+  }
 }
 
 function renderCalendario() {
@@ -513,6 +533,11 @@ document.getElementById('r-add').addEventListener('click', async () => {
     setStatus(status, 'La salida no puede ser antes que la entrada.', 'err');
     return;
   }
+  if (mesEstaCerrado(monthKey(entrada))) {
+    elEntrada.classList.add('invalid');
+    setStatus(status, 'El mes de ' + formatMes(monthKey(entrada)) + ' ya está cerrado. No se pueden agregar más reservas ahí.', 'err');
+    return;
+  }
   const conflict = findOverlap(entrada, salida);
   if (conflict) {
     elEntrada.classList.add('invalid'); elSalida.classList.add('invalid');
@@ -539,6 +564,10 @@ document.getElementById('g-add').addEventListener('click', async () => {
   const concepto = document.getElementById('g-concepto').value.trim();
   const monto = parseFloat(document.getElementById('g-monto').value) || 0;
   if (!fecha || !concepto) { setStatus(status, 'Falta fecha o concepto.', 'err'); return; }
+  if (mesEstaCerrado(monthKey(fecha))) {
+    setStatus(status, 'El mes de ' + formatMes(monthKey(fecha)) + ' ya está cerrado. No se pueden agregar más gastos ahí.', 'err');
+    return;
+  }
   try {
     await addDoc(gastosCol, { fecha, concepto, monto });
     document.getElementById('g-fecha').value = ''; document.getElementById('g-concepto').value = ''; document.getElementById('g-monto').value = '';
@@ -564,6 +593,25 @@ document.getElementById('n-add').addEventListener('click', async () => {
 });
 
 document.getElementById('s-mes').addEventListener('change', renderResumen);
+
+document.getElementById('cerrar-mes-btn').addEventListener('click', async () => {
+  if (currentRole !== 'editor') return;
+  const mes = document.getElementById('s-mes').value;
+  if (!mes) return;
+  const status = document.getElementById('mes-status');
+  const cerrado = mesEstaCerrado(mes);
+  try {
+    if (cerrado) {
+      await deleteDoc(doc(db, 'mesesCerrados', mes));
+      setStatus(status, 'Mes reabierto.', 'ok');
+    } else {
+      await setDoc(doc(db, 'mesesCerrados', mes), { cerrado: true });
+      setStatus(status, 'Mes de ' + formatMes(mes) + ' cerrado. No se van a poder agregar más reservas ni gastos ahí.', 'ok');
+    }
+  } catch (e) {
+    setStatus(status, 'No se pudo actualizar. Probá de nuevo.', 'err');
+  }
+});
 
 let armedDel = null;
 let armedTimeout = null;
@@ -610,6 +658,10 @@ function attachListeners() {
   onSnapshot(notasCol, snap => {
     notas = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     renderCalendario();
+  });
+  onSnapshot(mesesCerradosCol, snap => {
+    mesesCerrados = snap.docs.map(d => d.id);
+    renderResumen();
   });
 }
 
