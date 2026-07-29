@@ -242,6 +242,7 @@
           <span>Gastos <b class="neg" id="s-lucy-gastos">-$0</b></span>
           <span>Estadía <b id="s-lucy-estadia">$0</b></span>
           <span>Limpieza <b id="s-lucy-limpieza">$0</b></span>
+          <span>Convertido a USD <b class="neg" id="s-lucy-convertido">-$0</b></span>
         </div>
       </div>
     </div>
@@ -435,7 +436,7 @@ function populateMonths() {
 function renderResumen() {
   populateMonths();
   const mes = document.getElementById('s-mes').value;
-  let ingresos = 0, comision = 0, gastosMes = 0, estadiaMes = 0, limpiezaMes = 0;
+  let ingresos = 0, comision = 0, gastosMes = 0, estadiaMes = 0, limpiezaMes = 0, convertidoMes = 0;
   reservas.filter(r => monthKey(r.entrada) === mes).forEach(r => {
     const c = calcReserva(r);
     ingresos += r.pago || 0;
@@ -444,7 +445,8 @@ function renderResumen() {
     limpiezaMes += r.limpieza || 0;
   });
   gastos.filter(g => monthKey(g.fecha) === mes).forEach(g => { gastosMes += g.monto || 0; });
-  const lucyMes = estadiaMes + limpiezaMes - gastosMes;
+  conversionesUSD.filter(c => monthKey(c.fecha) === mes).forEach(c => { convertidoMes += c.pesos || 0; });
+  const lucyMes = estadiaMes + limpiezaMes - gastosMes - convertidoMes;
   document.getElementById('s-ingresos').textContent = fmt(ingresos);
   document.getElementById('s-comision').textContent = fmt(comision);
   document.getElementById('s-gastos').textContent = fmt(gastosMes);
@@ -453,6 +455,7 @@ function renderResumen() {
   document.getElementById('s-lucy-gastos').textContent = fmt(-gastosMes);
   document.getElementById('s-lucy-estadia').textContent = fmt(estadiaMes);
   document.getElementById('s-lucy-limpieza').textContent = fmt(limpiezaMes);
+  document.getElementById('s-lucy-convertido').textContent = fmt(-convertidoMes);
 
   const badge = document.getElementById('mes-cerrado-badge');
   const btn = document.getElementById('cerrar-mes-btn');
