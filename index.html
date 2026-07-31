@@ -236,13 +236,12 @@
       <div class="metric purple"><div class="lbl">Nuestra comisión</div><div class="val" id="s-comision">$0</div><div class="split" id="s-split">Juanma $0 · Lucas $0</div></div>
       <div class="metric coral"><div class="lbl">Gastos del mes</div><div class="val" id="s-gastos">$0</div></div>
       <div class="metric lucy">
-        <div class="lbl">Para entregar a Lucy</div>
+        <div class="lbl">Lucy</div>
         <div class="val" id="s-lucy">$0</div>
         <div class="breakdown">
           <span>Gastos <b class="neg" id="s-lucy-gastos">-$0</b></span>
           <span>Estadía <b id="s-lucy-estadia">$0</b></span>
           <span>Limpieza <b id="s-lucy-limpieza">$0</b></span>
-          <span>Convertido a USD <b class="neg" id="s-lucy-convertido">-$0</b></span>
         </div>
       </div>
     </div>
@@ -440,7 +439,7 @@ function populateMonths() {
 function renderResumen() {
   populateMonths();
   const mes = document.getElementById('s-mes').value;
-  let ingresos = 0, comision = 0, gastosMes = 0, estadiaMes = 0, limpiezaMes = 0, convertidoMes = 0;
+  let ingresos = 0, comision = 0, gastosMes = 0, estadiaMes = 0, limpiezaMes = 0;
   reservas.filter(r => monthKey(r.entrada) === mes).forEach(r => {
     const c = calcReserva(r);
     ingresos += r.pago || 0;
@@ -449,8 +448,7 @@ function renderResumen() {
     limpiezaMes += r.limpieza || 0;
   });
   gastos.filter(g => monthKey(g.fecha) === mes).forEach(g => { gastosMes += g.monto || 0; });
-  conversionesUSD.filter(c => monthKey(c.fecha) === mes).forEach(c => { convertidoMes += c.pesos || 0; });
-  const lucyMes = estadiaMes + limpiezaMes - gastosMes - convertidoMes;
+  const lucyMes = estadiaMes + limpiezaMes - gastosMes;
   document.getElementById('s-ingresos').textContent = fmt(ingresos);
   document.getElementById('s-comision').textContent = fmt(comision);
   document.getElementById('s-gastos').textContent = fmt(gastosMes);
@@ -459,7 +457,6 @@ function renderResumen() {
   document.getElementById('s-lucy-gastos').textContent = fmt(-gastosMes);
   document.getElementById('s-lucy-estadia').textContent = fmt(estadiaMes);
   document.getElementById('s-lucy-limpieza').textContent = fmt(limpiezaMes);
-  document.getElementById('s-lucy-convertido').textContent = fmt(-convertidoMes);
 
   const badge = document.getElementById('mes-cerrado-badge');
   const btn = document.getElementById('cerrar-mes-btn');
