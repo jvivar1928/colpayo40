@@ -251,7 +251,8 @@
   <div class="panel" id="panel-rendicion">
     <div class="card">
       <div style="font-size:12.5px; color:#766B5A;">Saldo pendiente en pesos</div>
-      <div id="saldo-ars-total" style="font-size:28px; font-weight:600; margin-top:4px; color:#3F5230;">$0</div>
+      <div id="saldo-ars-total" style="font-size:32px; font-weight:700; margin-top:4px;">$0</div>
+      <div id="saldo-ars-hint" style="font-size:11.5px; color:#766B5A; margin-top:2px;"></div>
       <div class="breakdown" style="margin-top:10px; padding-top:8px; border-top:0.5px solid rgba(63,82,48,0.18); display:flex; flex-direction:column; gap:3px;">
         <span style="display:flex; justify-content:space-between; font-size:12px;">Generado en total <b id="rend-generado">$0</b></span>
         <span style="display:flex; justify-content:space-between; font-size:12px;">Convertido a dólares <b id="rend-convertido">-$0</b></span>
@@ -274,7 +275,8 @@
 
     <div class="card" style="background:#F1E9D6;">
       <div style="font-size:12.5px; color:#766B5A;">Dólares pendientes de rendir</div>
-      <div id="saldo-usd-total" style="font-size:28px; font-weight:600; margin-top:4px; color:#3A2E22;">US$0</div>
+      <div id="saldo-usd-total" style="font-size:32px; font-weight:700; margin-top:4px;">US$0</div>
+      <div id="saldo-usd-hint" style="font-size:11.5px; color:#766B5A; margin-top:2px;"></div>
     </div>
 
     <div class="card editor-only">
@@ -501,10 +503,30 @@ function renderRendicion() {
   rendicionesUSD.forEach(u => { dolaresRendidos += u.dolares || 0; });
   const saldoUSD = dolaresConvertidos - dolaresRendidos;
 
-  document.getElementById('saldo-ars-total').textContent = fmt(saldoARS);
+  function colorSaldo(n) {
+    if (n > 0) return '#B5542F';
+    if (n < 0) return '#0C447C';
+    return '#3F5230';
+  }
+
+  const elSaldoArs = document.getElementById('saldo-ars-total');
+  elSaldoArs.textContent = fmt(saldoARS);
+  elSaldoArs.style.color = colorSaldo(saldoARS);
+  document.getElementById('saldo-ars-hint').textContent =
+    saldoARS > 0 ? 'Pendiente de convertir a dólares.' :
+    saldoARS < 0 ? 'Convertiste más de lo generado (pusiste plata vos).' :
+    'Todo convertido.';
+
   document.getElementById('rend-generado').textContent = fmt(generadoARS);
   document.getElementById('rend-convertido').textContent = fmt(-pesosConvertidos);
-  document.getElementById('saldo-usd-total').textContent = fmtUSD(saldoUSD);
+
+  const elSaldoUsd = document.getElementById('saldo-usd-total');
+  elSaldoUsd.textContent = fmtUSD(saldoUSD);
+  elSaldoUsd.style.color = colorSaldo(saldoUSD);
+  document.getElementById('saldo-usd-hint').textContent =
+    saldoUSD > 0 ? 'Pendiente de rendirle a Lucy.' :
+    saldoUSD < 0 ? 'Le rendiste más dólares de los convertidos.' :
+    'Todo rendido.';
 
   const convPesosInput = document.getElementById('conv-pesos');
   if (convPesosInput && !convPesosInput.value) convPesosInput.placeholder = String(Math.round(saldoARS));
@@ -690,10 +712,11 @@ document.getElementById('r-add').addEventListener('click', async () => {
     setStatus(status, 'Esas fechas se cruzan con la estadía de <b>' + (conflict.huesped || 'un inquilino sin nombre') + '</b>, del ' + formatFecha(conflict.entrada) + ' al ' + formatFecha(conflict.salida) + '.', 'err');
     return;
   }
+  elHuesped.value = ''; elEntrada.value = ''; elSalida.value = ''; elPago.value = '';
+  document.getElementById('r-limpieza').value = '';
+  setStatus(status, 'Guardando...');
   try {
     await addDoc(reservasCol, { huesped, entrada, salida, pago, limpieza, comisionPct });
-    elHuesped.value = ''; elEntrada.value = ''; elSalida.value = ''; elPago.value = '';
-    document.getElementById('r-limpieza').value = '';
     setStatus(status, 'Reserva guardada.', 'ok');
   } catch (e) {
     setStatus(status, 'No se pudo guardar. Probá de nuevo.', 'err');
@@ -714,9 +737,10 @@ document.getElementById('g-add').addEventListener('click', async () => {
     setStatus(status, 'El mes de ' + formatMes(monthKey(fecha)) + ' ya está cerrado. No se pueden agregar más gastos ahí.', 'err');
     return;
   }
+  document.getElementById('g-fecha').value = ''; document.getElementById('g-concepto').value = ''; document.getElementById('g-monto').value = '';
+  setStatus(status, 'Guardando...');
   try {
     await addDoc(gastosCol, { fecha, concepto, monto });
-    document.getElementById('g-fecha').value = ''; document.getElementById('g-concepto').value = ''; document.getElementById('g-monto').value = '';
     setStatus(status, 'Gasto guardado.', 'ok');
   } catch (e) {
     setStatus(status, 'No se pudo guardar. Probá de nuevo.', 'err');
@@ -732,9 +756,10 @@ document.getElementById('conv-add').addEventListener('click', async () => {
   const pesos = parseFloat(elPesos.value) || 0;
   const dolares = parseFloat(elDolares.value) || 0;
   if (!fecha || !pesos || !dolares) { setStatus(status, 'Falta la fecha, los pesos o los dólares.', 'err'); return; }
+  document.getElementById('conv-fecha').value = ''; elPesos.value = ''; elDolares.value = '';
+  setStatus(status, 'Guardando...');
   try {
     await addDoc(conversionesUSDCol, { fecha, pesos, dolares });
-    document.getElementById('conv-fecha').value = ''; elPesos.value = ''; elDolares.value = '';
     setStatus(status, 'Conversión registrada.', 'ok');
   } catch (e) {
     setStatus(status, 'No se pudo guardar. Probá de nuevo.', 'err');
@@ -748,9 +773,10 @@ document.getElementById('rend-add').addEventListener('click', async () => {
   const elDolares = document.getElementById('rend-dolares');
   const dolares = parseFloat(elDolares.value) || 0;
   if (!fecha || !dolares) { setStatus(status, 'Falta la fecha o los dólares entregados.', 'err'); return; }
+  document.getElementById('rend-fecha').value = ''; elDolares.value = '';
+  setStatus(status, 'Guardando...');
   try {
     await addDoc(rendicionesUSDCol, { fecha, dolares });
-    document.getElementById('rend-fecha').value = ''; elDolares.value = '';
     setStatus(status, 'Rendición registrada.', 'ok');
   } catch (e) {
     setStatus(status, 'No se pudo guardar. Probá de nuevo.', 'err');
@@ -763,9 +789,10 @@ document.getElementById('n-add').addEventListener('click', async () => {
   const fecha = document.getElementById('n-fecha').value;
   const texto = document.getElementById('n-texto').value.trim();
   if (!fecha || !texto) { setStatus(status, 'Falta fecha o comentario.', 'err'); return; }
+  document.getElementById('n-fecha').value = ''; document.getElementById('n-texto').value = '';
+  setStatus(status, 'Guardando...');
   try {
     await addDoc(notasCol, { fecha, texto });
-    document.getElementById('n-fecha').value = ''; document.getElementById('n-texto').value = '';
     setStatus(status, 'Nota guardada.', 'ok');
   } catch (e) {
     setStatus(status, 'No se pudo guardar. Probá de nuevo.', 'err');
