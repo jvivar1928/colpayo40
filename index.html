@@ -99,6 +99,8 @@
   .cal-guest { font-size: 10.5px; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
   .cal-legend { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
   .cal-chip { font-size: 11.5px; padding: 4px 10px; border-radius: 20px; font-weight: 600; }
+  .periodo-toggle { height: 32px; padding: 0 16px; border-radius: 20px; border: 0.5px solid #D6C9AA; background: #ffffff; color: #766B5A; font-size: 13px; cursor: pointer; }
+  .periodo-toggle.active { background: #B5542F; border-color: #B5542F; color: #ffffff; }
   .role-viewer .editor-only { display: none !important; }
   .login-bg { position: fixed; inset: 0; background-size: cover; background-position: center; z-index: -1; opacity: 0; transition: opacity 1.8s ease-in-out; pointer-events: none; }
   #login-screen { position: fixed; inset: 0; z-index: 50; align-items: center; justify-content: center; padding: 1.25rem; background: rgba(58,46,34,0.32); }
@@ -198,6 +200,14 @@
         <button class="primary" id="r-add"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Agregar reserva</button>
       </div>
       <div class="status" id="r-status"></div>
+    </div>
+    <div class="card">
+      <label>Ver por</label>
+      <div style="display:flex; gap:6px; margin:6px 0 10px;">
+        <button type="button" id="r-modo-mes" class="periodo-toggle active">Mes</button>
+        <button type="button" id="r-modo-anio" class="periodo-toggle">Año</button>
+      </div>
+      <select id="r-periodo"></select>
     </div>
     <div class="card" id="r-list"><div class="empty">Cargando reservas...</div></div>
   </div>
@@ -392,10 +402,51 @@ function findOverlap(entrada, salida, excludeId) {
   return reservas.find(r => r.id !== excludeId && r.entrada && r.salida && entrada <= r.salida && salida >= r.entrada);
 }
 
+let rModoPeriodo = 'mes';
+
+function getMesesDeReserva(r) {
+  if (!r.entrada || !r.salida) return [];
+  const meses = [];
+  let y = parseInt(r.entrada.slice(0, 4), 10);
+  let m = parseInt(r.entrada.slice(5, 7), 10);
+  const yEnd = parseInt(r.salida.slice(0, 4), 10);
+  const mEnd = parseInt(r.salida.slice(5, 7), 10);
+  let guard = 0;
+  while ((y < yEnd || (y === yEnd && m <= mEnd)) && guard < 60) {
+    meses.push(y + '-' + pad(m));
+    m++;
+    if (m > 12) { m = 1; y++; }
+    guard++;
+  }
+  return meses;
+}
+
+function populateReservaPeriodos() {
+  const sel = document.getElementById('r-periodo');
+  const set = new Set();
+  reservas.forEach(r => {
+    getMesesDeReserva(r).forEach(mk => set.add(rModoPeriodo === 'mes' ? mk : mk.slice(0, 4)));
+  });
+  const arr = [...set].sort().reverse();
+  const prev = sel.value;
+  sel.innerHTML = arr.length
+    ? arr.map(v => '<option value="' + v + '">' + (rModoPeriodo === 'mes' ? formatMes(v) : v) + '</option>').join('')
+    : '<option value="">Sin reservas todavía</option>';
+  if (arr.includes(prev)) sel.value = prev;
+}
+
 function renderReservas() {
+  populateReservaPeriodos();
   const list = document.getElementById('r-list');
-  if (!reservas.length) { list.innerHTML = '<div class="empty">Todavía no cargaste ninguna reserva.</div>'; return; }
-  const sorted = [...reservas].sort((a, b) => (b.entrada || '').localeCompare(a.entrada || ''));
+  const periodo = document.getElementById('r-periodo').value;
+  const filtradas = periodo
+    ? reservas.filter(r => getMesesDeReserva(r).some(mk => rModoPeriodo === 'mes' ? mk === periodo : mk.slice(0, 4) === periodo))
+    : [];
+  if (!filtradas.length) {
+    list.innerHTML = '<div class="empty">' + (reservas.length ? 'No hay estadías en ese período.' : 'Todavía no cargaste ninguna reserva.') + '</div>';
+    return;
+  }
+  const sorted = [...filtradas].sort((a, b) => (b.entrada || '').localeCompare(a.entrada || ''));
   list.innerHTML = sorted.map(r => {
     const { base, comision, neto } = calcReserva(r);
     return '<div class="list-item res"><div class="li-top"><div><div class="li-title">' + (r.huesped || 'Sin nombre') + '</div><div class="li-sub">' + formatFecha(r.entrada) + ' al ' + formatFecha(r.salida) + '</div></div><button class="del" data-id="' + r.id + '" data-kind="r" aria-label="Eliminar reserva"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="7" x2="20" y2="7"/><path d="M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"/><path d="M10 7V4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3"/></svg></button></div><div class="li-nums"><span>Pagó: <b>' + fmt(r.pago) + '</b></span><span>Limpieza: <b>' + fmt(r.limpieza) + '</b></span><span>Base: <b>' + fmt(base) + '</b></span><span>Comisión (' + r.comisionPct + '%): <b class="purple">' + fmt(comision) + '</b></span><span>Neto Lucy: <b class="teal">' + fmt(neto) + '</b></span></div></div>';
@@ -804,6 +855,24 @@ document.getElementById('n-add').addEventListener('click', async () => {
 
 document.getElementById('s-mes').addEventListener('change', renderResumen);
 document.getElementById('g-mes').addEventListener('change', renderGastos);
+
+document.getElementById('r-periodo').addEventListener('change', renderReservas);
+document.getElementById('r-modo-mes').addEventListener('click', () => {
+  if (rModoPeriodo === 'mes') return;
+  rModoPeriodo = 'mes';
+  document.getElementById('r-modo-mes').classList.add('active');
+  document.getElementById('r-modo-anio').classList.remove('active');
+  document.getElementById('r-periodo').value = '';
+  renderReservas();
+});
+document.getElementById('r-modo-anio').addEventListener('click', () => {
+  if (rModoPeriodo === 'anio') return;
+  rModoPeriodo = 'anio';
+  document.getElementById('r-modo-anio').classList.add('active');
+  document.getElementById('r-modo-mes').classList.remove('active');
+  document.getElementById('r-periodo').value = '';
+  renderReservas();
+});
 
 let cerrarMesArmed = false;
 let cerrarMesArmedFor = null;
