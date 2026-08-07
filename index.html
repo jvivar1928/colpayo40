@@ -62,6 +62,9 @@
   .li-nums b.purple { color: #6B4A2B; }
   .del { background: none; border: none; color: #A69A85; cursor: pointer; padding: 2px 4px; height: auto; }
   .del:hover { color: #A32D2D; background: none; }
+  .edit-btn { background: none; border: none; color: #A69A85; cursor: pointer; padding: 2px 4px; height: auto; }
+  .edit-btn:hover { color: #B5542F; background: none; }
+  .role-viewer .edit-btn { display: none !important; }
   .del.armed { color: #A32D2D; font-size: 11px; font-weight: 600; white-space: nowrap; padding: 3px 9px; border: 1px solid #F09595; border-radius: 20px; background: #FCEBEB; }
   .del.armed:hover { background: #F7C1C1; }
   .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 1rem; }
@@ -188,6 +191,7 @@
 
   <div class="panel" id="panel-reservas">
     <div class="card editor-only">
+      <div id="r-form-title" style="display:none; font-size:13px; font-weight:700; color:#B5542F; margin-bottom:10px;"></div>
       <div class="grid2">
         <div class="field"><label>Huésped</label><input type="text" id="r-huesped" placeholder="Nombre" /></div>
         <div class="field"><label>Entrada</label><input type="date" id="r-entrada" /></div>
@@ -197,6 +201,7 @@
         <div class="field"><label>Comisión</label><div class="static-field">30%</div></div>
       </div>
       <div class="row-actions">
+        <button type="button" id="r-cancel-edit" style="display:none;">Cancelar</button>
         <button class="primary" id="r-add"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Agregar reserva</button>
       </div>
       <div class="status" id="r-status"></div>
@@ -306,7 +311,7 @@
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js';
 import { getAuth, signInWithEmailAndPassword, signInAnonymously, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js';
-import { getFirestore, collection, addDoc, deleteDoc, doc, setDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js';
+import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, setDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js';
 
 const firebaseConfig = {
   apiKey: "AIzaSyDm4VIjmqFBgCZ3fVAkuOH4I4EMh3UVKkA",
@@ -449,7 +454,7 @@ function renderReservas() {
   const sorted = [...filtradas].sort((a, b) => (b.entrada || '').localeCompare(a.entrada || ''));
   list.innerHTML = sorted.map(r => {
     const { base, comision, neto } = calcReserva(r);
-    return '<div class="list-item res"><div class="li-top"><div><div class="li-title">' + (r.huesped || 'Sin nombre') + '</div><div class="li-sub">' + formatFecha(r.entrada) + ' al ' + formatFecha(r.salida) + '</div></div><button class="del" data-id="' + r.id + '" data-kind="r" aria-label="Eliminar reserva"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="7" x2="20" y2="7"/><path d="M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"/><path d="M10 7V4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3"/></svg></button></div><div class="li-nums"><span>Pagó: <b>' + fmt(r.pago) + '</b></span><span>Limpieza: <b>' + fmt(r.limpieza) + '</b></span><span>Base: <b>' + fmt(base) + '</b></span><span>Comisión (' + r.comisionPct + '%): <b class="purple">' + fmt(comision) + '</b></span><span>Neto Lucy: <b class="teal">' + fmt(neto) + '</b></span></div></div>';
+    return '<div class="list-item res"><div class="li-top"><div><div class="li-title">' + (r.huesped || 'Sin nombre') + '</div><div class="li-sub">' + formatFecha(r.entrada) + ' al ' + formatFecha(r.salida) + '</div></div><div style="display:flex; gap:2px;"><button class="edit-btn" data-id="' + r.id + '" aria-label="Editar reserva"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button><button class="del" data-id="' + r.id + '" data-kind="r" aria-label="Eliminar reserva"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="7" x2="20" y2="7"/><path d="M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"/><path d="M10 7V4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3"/></svg></button></div></div><div class="li-nums"><span>Pagó: <b>' + fmt(r.pago) + '</b></span><span>Limpieza: <b>' + fmt(r.limpieza) + '</b></span><span>Base: <b>' + fmt(base) + '</b></span><span>Comisión (' + r.comisionPct + '%): <b class="purple">' + fmt(comision) + '</b></span><span>Neto Lucy: <b class="teal">' + fmt(neto) + '</b></span></div></div>';
   }).join('');
 }
 
@@ -664,6 +669,8 @@ function clearStatusNow(el) {
   el.innerHTML = '';
 }
 
+let editingReservaId = null;
+
 function resetReservaForm() {
   ['r-huesped', 'r-entrada', 'r-salida', 'r-pago', 'r-limpieza'].forEach(id => {
     const el = document.getElementById(id);
@@ -671,6 +678,27 @@ function resetReservaForm() {
     el.classList.remove('invalid');
   });
   clearStatusNow(document.getElementById('r-status'));
+  editingReservaId = null;
+  document.getElementById('r-add').innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Agregar reserva';
+  document.getElementById('r-cancel-edit').style.display = 'none';
+  document.getElementById('r-form-title').style.display = 'none';
+}
+
+function startEditReserva(r) {
+  editingReservaId = r.id;
+  document.getElementById('r-huesped').value = r.huesped || '';
+  document.getElementById('r-entrada').value = r.entrada || '';
+  document.getElementById('r-salida').value = r.salida || '';
+  document.getElementById('r-pago').value = r.pago || '';
+  document.getElementById('r-limpieza').value = r.limpieza || '';
+  ['r-huesped', 'r-entrada', 'r-salida', 'r-pago'].forEach(id => document.getElementById(id).classList.remove('invalid'));
+  clearStatusNow(document.getElementById('r-status'));
+  document.getElementById('r-add').innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>Guardar cambios';
+  document.getElementById('r-cancel-edit').style.display = 'inline-flex';
+  const title = document.getElementById('r-form-title');
+  title.textContent = 'Editando la reserva de ' + (r.huesped || 'sin nombre');
+  title.style.display = 'block';
+  document.getElementById('r-huesped').scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 function resetGastoForm() {
   ['g-fecha', 'g-concepto', 'g-monto'].forEach(id => {
@@ -748,7 +776,6 @@ document.getElementById('r-add').addEventListener('click', async () => {
   if (!huesped) { elHuesped.classList.add('invalid'); faltantes.push('el nombre del huésped'); }
   if (!entrada) { elEntrada.classList.add('invalid'); faltantes.push('la entrada'); }
   if (!salida) { elSalida.classList.add('invalid'); faltantes.push('la salida'); }
-  if (!pago) { elPago.classList.add('invalid'); faltantes.push('lo que pagó el huésped'); }
   if (faltantes.length) { setStatus(status, 'Falta completar: ' + faltantes.join(', ') + '.', 'err'); return; }
   if (salida < entrada) {
     elEntrada.classList.add('invalid'); elSalida.classList.add('invalid');
@@ -760,21 +787,34 @@ document.getElementById('r-add').addEventListener('click', async () => {
     setStatus(status, 'El mes de ' + formatMes(monthKey(entrada)) + ' ya está cerrado. No se pueden agregar más reservas ahí.', 'err');
     return;
   }
-  const conflict = findOverlap(entrada, salida);
+  const conflict = findOverlap(entrada, salida, editingReservaId);
   if (conflict) {
     elEntrada.classList.add('invalid'); elSalida.classList.add('invalid');
     setStatus(status, 'Esas fechas se cruzan con la estadía de <b>' + (conflict.huesped || 'un inquilino sin nombre') + '</b>, del ' + formatFecha(conflict.entrada) + ' al ' + formatFecha(conflict.salida) + '.', 'err');
     return;
   }
-  elHuesped.value = ''; elEntrada.value = ''; elSalida.value = ''; elPago.value = '';
-  document.getElementById('r-limpieza').value = '';
+  const idEnEdicion = editingReservaId;
+  resetReservaForm();
   setStatus(status, 'Guardando...');
   try {
-    await addDoc(reservasCol, { huesped, entrada, salida, pago, limpieza, comisionPct });
-    setStatus(status, 'Reserva guardada.', 'ok');
+    if (idEnEdicion) {
+      await updateDoc(doc(db, 'reservas', idEnEdicion), { huesped, entrada, salida, pago, limpieza, comisionPct });
+      setStatus(status, 'Reserva actualizada.', 'ok');
+    } else {
+      await addDoc(reservasCol, { huesped, entrada, salida, pago, limpieza, comisionPct });
+      setStatus(status, 'Reserva guardada.', 'ok');
+    }
   } catch (e) {
     setStatus(status, 'No se pudo guardar. Probá de nuevo.', 'err');
   }
+});
+document.getElementById('r-cancel-edit').addEventListener('click', () => { resetReservaForm(); });
+document.addEventListener('click', (e) => {
+  const btn = e.target.closest('.edit-btn');
+  if (!btn) return;
+  if (currentRole !== 'editor') return;
+  const r = reservas.find(x => x.id === btn.dataset.id);
+  if (r) startEditReserva(r);
 });
 ['r-huesped', 'r-entrada', 'r-salida'].forEach(id => {
   document.getElementById(id).addEventListener('input', function () { this.classList.remove('invalid'); });
